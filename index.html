@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html lang="mg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotokely - AI Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png" alt="Kotokely" class="ai-icon">
+            <h1>Kotokely</h1>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai-message">
+                <img src="https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png" alt="AI" class="message-icon">
+                <div class="message-content">
+                    <p>Manahoana! Izaho dia Kotokely. Afaka manampy anao amin'ny inona aho?</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <textarea 
+                id="userInput" 
+                placeholder="Soraty eto ny hafatrao..."
+                rows="1"
+            ></textarea>
+            <button id="sendButton">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
