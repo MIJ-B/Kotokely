@@ -69,10 +69,25 @@ jobs:
         }
         EOF
 
-    - name: Download and prepare icon
+    - name: Prepare icon
       run: |
         mkdir -p resources
-        curl -o resources/icon.png "https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png"
+        
+        # Raha misy icon.png eo amin'ny root, ampiasaina izany
+        if [ -f icon.png ]; then
+          echo "✅ Using custom icon.png from repository"
+          cp icon.png resources/icon.png
+        else
+          echo "⬇️ Downloading default icon from ibb.co"
+          curl -o resources/icon.png "https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png"
+        fi
+        
+        # Verifier raha misy ny icon
+        if [ ! -f resources/icon.png ]; then
+          echo "❌ Icon not found! Creating placeholder..."
+          # Mamorona icon blanc raha tena tsy misy
+          convert -size 512x512 xc:white resources/icon.png
+        fi
 
     - name: Initialize Capacitor
       run: npx cap init "Kotokely" "com.kotokely.app" --web-dir="www"
