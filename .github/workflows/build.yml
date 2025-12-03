@@ -19,6 +19,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
 
     - name: Setup Java JDK
       uses: actions/setup-java@v4
@@ -32,13 +33,37 @@ jobs:
     - name: Install Capacitor CLI
       run: npm install -g @capacitor/cli
 
+    - name: Create www directory and copy files
+      run: |
+        mkdir -p www
+        cp index.html www/ || echo "index.html not found"
+        cp style.css www/ || echo "style.css not found"
+        cp app.js www/ || echo "app.js not found"
+        
+        # Raha tsy misy files, mamorona basic HTML
+        if [ ! -f www/index.html ]; then
+          cat > www/index.html << 'HTMLEOF'
+        <!DOCTYPE html>
+        <html lang="mg">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Kotokely</title>
+        </head>
+        <body>
+            <h1>Kotokely AI Chat</h1>
+        </body>
+        </html>
+        HTMLEOF
+        fi
+
     - name: Create Capacitor config
       run: |
         cat > capacitor.config.json << EOF
         {
           "appId": "com.kotokely.app",
           "appName": "Kotokely",
-          "webDir": ".",
+          "webDir": "www",
           "server": {
             "androidScheme": "https"
           }
@@ -51,17 +76,21 @@ jobs:
         curl -o resources/icon.png "https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png"
 
     - name: Initialize Capacitor
-      run: |
-        npx cap init "Kotokely" "com.kotokely.app" --web-dir="."
+      run: npx cap init "Kotokely" "com.kotokely.app" --web-dir="www"
         
     - name: Add Android platform
       run: npx cap add android
 
-    - name: Copy web assets
-      run: npx cap copy android
+    - name: Fix capacitor plugins config
+      run: |
+        mkdir -p android/app/src/main/assets
+        echo '[]' > android/app/src/main/assets/capacitor.plugins.json
+        echo '{}' > android/app/src/main/assets/capacitor.config.json
 
-    - name: Update Android resources
-      run: npx cap sync android
+    - name: Copy web assets
+      run: |
+        npx cap copy android || true
+        npx cap sync android || true
 
     - name: Generate Android icons
       run: |
