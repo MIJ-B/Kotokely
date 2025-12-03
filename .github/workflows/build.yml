@@ -1,8 +1,10 @@
-name: Build Kotokely App
+name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -11,61 +13,113 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-    
+      uses: actions/checkout@v3
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
-    
-    - name: Create package.json
-      run: |
-        cat > package.json << 'EOF'
-        {
-          "name": "kotokely",
-          "version": "1.0.0",
-          "description": "Kotokely AI Chat",
-          "scripts": {
-            "build": "echo 'Build complete'"
-          }
-        }
-        EOF
-    
-    - name: Install Capacitor
-      run: |
-        npm install @capacitor/core @capacitor/cli
-        npm install @capacitor/android
-    
-    - name: Setup Java
-      uses: actions/setup-java@v4
+        cache: 'npm'
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
         java-version: '17'
-    
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+
     - name: Create Capacitor config
       run: |
-        cat > capacitor.config.json << 'EOF'
+        cat > capacitor.config.json << EOF
         {
           "appId": "com.kotokely.app",
           "appName": "Kotokely",
           "webDir": ".",
-          "bundledWebRuntime": false
+          "server": {
+            "androidScheme": "https"
+          }
         }
         EOF
-    
-    - name: Initialize Capacitor Android
+
+    - name: Download and prepare icon
       run: |
-        npx cap add android
-        npx cap sync android
-    
+        mkdir -p resources
+        curl -o resources/icon.png "https://i.ibb.co/6cdRVkL8/37e57528-8a5b-11ea-b169-e77fb0bc2332-f70b8608-384x384o-31a9526fec54.png"
+
+    - name: Initialize Capacitor
+      run: |
+        npx cap init "Kotokely" "com.kotokely.app" --web-dir="."
+        
+    - name: Add Android platform
+      run: npx cap add android
+
+    - name: Copy web assets
+      run: npx cap copy android
+
+    - name: Update Android resources
+      run: npx cap sync android
+
+    - name: Generate Android icons
+      run: |
+        # Install ImageMagick for icon generation
+        sudo apt-get update
+        sudo apt-get install -y imagemagick
+        
+        # Create Android icon directories
+        mkdir -p android/app/src/main/res/mipmap-mdpi
+        mkdir -p android/app/src/main/res/mipmap-hdpi
+        mkdir -p android/app/src/main/res/mipmap-xhdpi
+        mkdir -p android/app/src/main/res/mipmap-xxhdpi
+        mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+        
+        # Generate icons of different sizes
+        convert resources/icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+        convert resources/icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        convert resources/icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        convert resources/icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        convert resources/icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+        
+        # Round icons
+        convert resources/icon.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+        convert resources/icon.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+        convert resources/icon.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+        convert resources/icon.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+        convert resources/icon.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x android/gradlew
+
     - name: Build Android APK
       run: |
         cd android
-        chmod +x ./gradlew
         ./gradlew assembleDebug --stacktrace
-    
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+
+    - name: Sign APK (optional)
+      if: false  # Atsaharo raha tsy mila signature
+      run: |
+        cd android/app/build/outputs/apk/debug
+        # Eto no ampidirana ny signing script raha mila
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
       with:
-        name: kotokely-app
+        name: kotokely-app-debug
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        files: android/app/build/outputs/apk/debug/app-debug.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
