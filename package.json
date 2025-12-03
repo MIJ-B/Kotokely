@@ -1,19 +1,20 @@
 {
-  "name": "kotokely",
+  "name": "kotokely-app",
   "version": "1.0.0",
-  "description": "Kotokely AI Chat Assistant",
-  "main": "app.js",
+  "description": "Kotokely AI Chat Application",
+  "main": "index.html",
   "scripts": {
     "build": "echo 'Build complete'",
-    "cap:sync": "npx cap sync",
-    "cap:android": "npx cap open android"
+    "android": "npx cap open android",
+    "sync": "npx cap sync"
   },
-  "keywords": ["ai", "chat", "assistant", "malagasy"],
-  "author": "MIJ-B",
+  "keywords": ["capacitor", "android", "ai", "chat"],
+  "author": "",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/android": "^5.5.0",
-    "@capacitor/core": "^5.5.0",
-    "@capacitor/cli": "^5.5.0"
-  }
+    "@capacitor/android": "^5.5.1",
+    "@capacitor/core": "^5.5.1",
+    "@capacitor/cli": "^5.5.1"
+  },
+  "devDependencies": {}
 }
