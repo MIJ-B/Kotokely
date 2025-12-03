@@ -13,16 +13,16 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
 
     - name: Setup Java JDK
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
@@ -99,22 +99,17 @@ jobs:
         cd android
         ./gradlew assembleDebug --stacktrace
 
-    - name: Sign APK (optional)
-      if: false  # Atsaharo raha tsy mila signature
-      run: |
-        cd android/app/build/outputs/apk/debug
-        # Eto no ampidirana ny signing script raha mila
-
     - name: Upload APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: kotokely-app-debug
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+        compression-level: 6
 
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: v${{ github.run_number }}
         name: Release v${{ github.run_number }}
